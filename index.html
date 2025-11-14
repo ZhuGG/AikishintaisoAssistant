@@ -1,186 +1,1327 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Quiz Rando Bauges – QCM Duel</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>ARC Raiders • Squad Rotator</title>
+
+  <!-- Optionnel : police (la page fonctionne aussi sans connexion) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --main: #46815f;
-      --accent: #e7c65c;
-      --fond: #f5f7f3;
-      --ok: #52c269;
-      --fail: #d9534f;
-      --shadow: 0 2px 12px #0001;
+      --bg-deep: #050308;
+      --bg-panel: rgba(10, 7, 18, 0.97);
+      --accent: #ffb347;
+      --accent-strong: #ff6b3d;
+      --accent-soft: rgba(255, 179, 71, 0.16);
+      --accent-alt: #34d1ff;
+      --text-main: #fdfaf5;
+      --text-muted: #b3a89b;
+      --danger: #f56565;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow-soft: 0 14px 40px rgba(0,0,0,0.65);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --transition-fast: 120ms ease-out;
     }
-    body { margin:0; background:var(--fond); font-family:'Segoe UI',sans-serif; color:#222;}
-    header { background:var(--main); color:#fff; padding:1.2em 0; text-align:center; letter-spacing:0.05em;}
-    main { max-width:430px; margin:1.5em auto; padding:1.2em; background:#fff; border-radius:16px; box-shadow:var(--shadow);}
-    .qplayer { text-align:center; font-weight:bold; color:var(--main); margin-bottom:0.5em; font-size:1.15em;}
-    .qtext { font-size:1.22em; font-weight:600; margin-bottom:1.2em; text-align:center; min-height:44px; }
-    .qcm { display:grid; gap:1em; margin-bottom:1.1em; }
-    .btn { display:block; width:100%; border:none; border-radius:8px; font-size:1em; font-weight:600; padding:0.8em; background:var(--accent); color:#222; box-shadow:var(--shadow); cursor:pointer; transition:.2s; }
-    .btn:hover, .btn.selected { background:var(--main); color:#fff; }
-    .btn.good { background:var(--ok)!important; color:#fff;}
-    .btn.bad { background:var(--fail)!important; color:#fff;}
-    .feedback { text-align:center; min-height:36px; font-size:1.07em; font-weight:500; margin-bottom:1.2em; transition:.3s;}
-    .scorebox { display:flex; justify-content:space-around; margin:1.2em 0 0.8em 0;}
-    .score { font-size:1em; padding:0.25em 0.8em; background:#f3f5f2; border-radius:6px;}
-    .hugues {color:#46815f;}
-    .olivier {color:#b8830e;}
-    .pierre {color:#af3245;}
-    .animate-in { animation:fadeIn .7s cubic-bezier(.5,0,.3,1);}
-    .animate-out { animation:fadeOut .45s cubic-bezier(.5,0,.3,1);}
-    @keyframes fadeIn { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
-    @keyframes fadeOut { from{opacity:1;transform:translateY(0);} to{opacity:0;transform:translateY(-25px);} }
-    @media (max-width:600px) {
-      main {padding:0.7em;}
-      .qtext {font-size:1.08em;}
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Space Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    .tip {background:#e6f7ed; color:#46815f; border-left:4px solid #46815f; margin:0.5em 0 1em 0; padding:0.6em 1em;}
-    .footer {text-align:center; color:#888; font-size:0.94em; margin-top:2em;}
+
+    body {
+      min-height: 100vh;
+      padding: 22px;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 20% -10%, #f9e0b5 0, #f2d39d 12%, transparent 55%),
+        radial-gradient(circle at 115% 120%, #f97316 0, #7c2d12 26%, transparent 65%),
+        radial-gradient(circle at 50% 140%, #1d4ed8 0, #020617 60%);
+      background-color: var(--bg-deep);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Scanlines + grain façon écran rétro */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.05) 0,
+          rgba(255, 255, 255, 0.05) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+      mix-blend-mode: soft-light;
+      opacity: 0.12;
+      z-index: 0;
+      animation: crt-flicker 4s infinite alternate;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 0 0, rgba(0,0,0,0.65), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(0,0,0,0.75), transparent 55%);
+      z-index: 0;
+    }
+
+    @keyframes crt-flicker {
+      0% { opacity: 0.08; }
+      40% { opacity: 0.14; }
+      100% { opacity: 0.11; }
+    }
+
+    .app {
+      max-width: 1150px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      animation: app-fade-in 380ms ease-out;
+    }
+
+    @keyframes app-fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.99);
+        filter: blur(1px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    header {
+      margin-bottom: 20px;
+      padding: 18px 22px;
+      border-radius: var(--radius-lg);
+      background:
+        linear-gradient(120deg, rgba(4, 7, 20, 0.9), rgba(10, 7, 18, 0.96)),
+        linear-gradient(135deg, rgba(255,255,255,0.06), transparent);
+      border: 1px solid rgba(248, 250, 252, 0.14);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* bande diagonale façon affiche ARC Raiders */
+    header::before {
+      content: "";
+      position: absolute;
+      left: -120px;
+      bottom: -40px;
+      width: 260px;
+      height: 90px;
+      transform: rotate(12deg);
+      background:
+        linear-gradient(to right,
+          #ff6b3d 0 40%,
+          #ffd54f 40% 70%,
+          #111827 70% 100%
+        );
+      opacity: 0.8;
+      mix-blend-mode: screen;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      max-width: 420px;
+    }
+
+    .badge-stack {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      padding: 4px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(15, 23, 42, 0.92);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+    }
+
+    .chip-accent {
+      border-color: rgba(255,179,71,0.7);
+      color: var(--accent);
+      background: rgba(23, 18, 8, 0.9);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.35fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 880px) {
+      body { padding: 14px; }
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px 15px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0 0, rgba(255,255,255,0.08), transparent 60%);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-title {
+      font-size: 0.88rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .panel-title span {
+      color: var(--accent-alt);
+    }
+
+    .sub-chip {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.9);
+      white-space: nowrap;
+    }
+
+    /* FORM AJOUT JOUEUR */
+
+    .add-player-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .add-player-form input {
+      flex: 1;
+      padding: 9px 11px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.96);
+      color: var(--text-main);
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+    }
+
+    .add-player-form input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .add-player-form input:focus {
+      border-color: rgba(255, 179, 71, 0.8);
+      box-shadow: 0 0 0 1px rgba(255, 179, 71, 0.5);
+      background: radial-gradient(circle at 0 0, rgba(255,179,71,0.12), rgba(15,23,42,0.98));
+    }
+
+    .btn {
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0 0, rgba(255,255,255,0.35), transparent 55%);
+      opacity: 0;
+      transition: opacity 200ms ease-out;
+      pointer-events: none;
+    }
+
+    .btn:hover::after {
+      opacity: 0.35;
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #130d07;
+      box-shadow: 0 10px 26px rgba(255, 123, 56, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.98);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: rgba(127, 29, 29, 0.9);
+      color: #fed7d7;
+      border: 1px solid rgba(248, 113, 113, 0.9);
+      box-shadow: 0 8px 20px rgba(248, 113, 113, 0.35);
+    }
+
+    /* LISTE JOUEURS */
+
+    .players-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .players-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .players-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .players-list::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.45);
+      border-radius: 999px;
+    }
+
+    .player-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(
+        90deg,
+        rgba(15, 23, 42, 0.98),
+        rgba(15, 23, 42, 0.98),
+        rgba(30, 41, 59, 0.96)
+      );
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.45);
+      transform-origin: left center;
+      animation: card-pop 220ms ease-out;
+    }
+
+    @keyframes card-pop {
+      from {
+        opacity: 0;
+        transform: translateX(-6px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    .player-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .player-name {
+      font-size: 0.96rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-pill {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    .status-playing {
+      background: rgba(45, 212, 191, 0.14);
+      border-color: rgba(34, 197, 94, 0.85);
+      color: #bbf7d0;
+    }
+
+    .status-bench {
+      background: rgba(129, 230, 217, 0.08);
+      border-color: rgba(56, 189, 248, 0.85);
+      color: #a5f3fc;
+    }
+
+    .status-absent {
+      background: rgba(55, 65, 81, 0.9);
+      border-color: rgba(75, 85, 99, 0.95);
+      color: var(--text-muted);
+    }
+
+    .present-toggle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .present-toggle input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .player-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* PANEL ROUND */
+
+    .round-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      position: relative;
+      z-index: 1;
+    }
+
+    .round-meta-left {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .round-label {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      opacity: 0.9;
+    }
+
+    .round-number {
+      font-weight: 600;
+      color: var(--accent);
+      font-size: 1.2rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 250, 252, 0.25);
+      background: radial-gradient(circle at 0 0, rgba(255,255,255,0.09), rgba(15,23,42,0.98));
+    }
+
+    .round-number.round-pulse {
+      animation: round-pulse 400ms ease-out;
+    }
+
+    @keyframes round-pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 179, 71, 0.45);
+      }
+      60% {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 12px rgba(255, 179, 71, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 179, 71, 0);
+      }
+    }
+
+    .round-layout {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .squad-section,
+    .bench-section {
+      background: radial-gradient(circle at 0 0, rgba(248, 250, 252, 0.06), rgba(15, 23, 42, 0.98));
+      border-radius: var(--radius-md);
+      padding: 11px 12px 10px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .squad-section {
+      box-shadow: 0 0 0 1px rgba(255, 179, 71, 0.35),
+                  0 12px 26px rgba(15, 23, 42, 0.9);
+    }
+
+    .bench-section {
+      border-style: dashed;
+      border-color: rgba(148, 163, 184, 0.8);
+      background: radial-gradient(circle at 100% 0, rgba(148, 163, 184, 0.09), rgba(15, 23, 42, 0.98));
+    }
+
+    .section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title span:first-child {
+      color: #e5e7eb;
+    }
+
+    .section-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .squad-list, .bench-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 32px;
+    }
+
+    .tag-player {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.75);
+      font-size: 0.8rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tag-player.squad {
+      border-color: rgba(255, 179, 71, 0.95);
+      background: radial-gradient(circle at 0 0, rgba(255, 179, 71, 0.26), rgba(15, 23, 42, 0.98));
+      box-shadow: 0 0 18px rgba(255, 179, 71, 0.4);
+      animation: squad-pop 260ms ease-out;
+    }
+
+    .tag-player.squad::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg,
+        rgba(255, 255, 255, 0.25),
+        transparent 45%,
+        transparent 55%,
+        rgba(255, 255, 255, 0.18)
+      );
+      mix-blend-mode: soft-light;
+      opacity: 0.18;
+      pointer-events: none;
+    }
+
+    @keyframes squad-pop {
+      0% {
+        opacity: 0;
+        transform: translateY(4px) scale(0.95);
+      }
+      60% {
+        opacity: 1;
+        transform: translateY(0) scale(1.04);
+      }
+      100% {
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .hint {
+      margin-top: 5px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 11px;
+      gap: 10px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    .controls-row-left {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .warning-text {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: #fed7d7;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .warning-text::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #f56565;
+    }
+
+    .empty-state {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state-quiet {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* POPUP CHAUVE + CONFETTI */
+
+    #confettiContainer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 50;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 6px;
+      height: 14px;
+      border-radius: 2px;
+      opacity: 0.95;
+      animation-name: confetti-fall;
+      animation-timing-function: linear;
+      animation-iteration-count: 1;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        transform: translate3d(0, -10vh, 0) rotateZ(0deg) rotateX(0deg);
+      }
+      100% {
+        transform: translate3d(0, 110vh, 0) rotateZ(360deg) rotateX(220deg);
+      }
+    }
+
+    .bald-popup {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 10% 0%, rgba(255,179,71,0.16), transparent 55%),
+                  rgba(3,7,18,0.78);
+      z-index: 60;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease-out;
+    }
+
+    .bald-popup.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bald-popup-inner {
+      background: radial-gradient(circle at 0 0, rgba(255,255,255,0.16), rgba(15,23,42,0.98));
+      border-radius: 20px;
+      border: 1px solid rgba(248, 250, 252, 0.55);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      padding: 18px 22px 16px;
+      max-width: 380px;
+      width: calc(100% - 40px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: bald-pop 280ms ease-out;
+    }
+
+    .bald-popup-inner::before {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background:
+        radial-gradient(circle at 0 0, rgba(255,179,71,0.3), transparent 40%),
+        radial-gradient(circle at 100% 100%, rgba(148,163,184,0.3), transparent 45%);
+      mix-blend-mode: screen;
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    @keyframes bald-pop {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .bald-title {
+      font-size: 0.92rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bald-emoji {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+      animation: bald-tilt 1200ms ease-in-out infinite alternate;
+      transform-origin: center bottom;
+    }
+
+    @keyframes bald-tilt {
+      from { transform: translateY(0) rotate(-4deg); }
+      to { transform: translateY(1px) rotate(4deg); }
+    }
+
+    .bald-text {
+      font-size: 0.86rem;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bald-text span {
+      color: var(--accent-alt);
+      font-weight: 600;
+    }
+
+    .bald-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bald-popup-close {
+      position: relative;
+      z-index: 1;
+      margin-top: 2px;
+    }
+
   </style>
 </head>
 <body>
-  <header>
-    <h1>Quiz Bauges – QCM Duel</h1>
-  </header>
-  <main>
-    <div class="scorebox" id="scorebox">
-      <span class="score hugues" id="p1">Hugues : 0</span>
-      <span class="score olivier" id="p2">Olivier : 0</span>
-      <span class="score pierre" id="p3">Pierre : 0</span>
+  <div class="app">
+    <header>
+      <div>
+        <h1><span>ARC</span> RAIDERS • SQUAD ROTATOR</h1>
+        <p>Rotation auto des escouades de 3, pour que les raids s’enchaînent sans débat dans le canal vocal.</p>
+      </div>
+      <div class="badge-stack">
+        <div class="chip chip-accent">Co-op · 3 Raiders</div>
+        <div class="chip">Local only · Stockage navigateur</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Panel joueurs -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>Joueurs</span> enregistrés</div>
+          <div class="sub-chip">Liste d’escouade</div>
+        </div>
+
+        <form class="add-player-form" id="addPlayerForm">
+          <input id="playerNameInput" type="text" placeholder="Ajouter un Raider (pseudo)" autocomplete="off" />
+          <button type="submit" class="btn btn-primary">Ajouter</button>
+        </form>
+
+        <div class="players-list" id="playersList">
+          <!-- Cartes joueurs -->
+        </div>
+      </section>
+
+      <!-- Panel rotation -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span>Rotation</span> de raid</div>
+          <div class="sub-chip">Algo équitable</div>
+        </div>
+
+        <div class="round-meta">
+          <div class="round-meta-left">
+            <span class="round-label">Round actuel</span>
+            <span class="round-number" id="roundNumber">–</span>
+          </div>
+          <div id="presentCountInfo">0 joueur connecté</div>
+        </div>
+
+        <div class="round-layout">
+          <div class="squad-section">
+            <div class="section-title">
+              <span>Escouade déployée</span>
+              <span class="section-sub" id="squadCountInfo">0 / 3 joueurs</span>
+            </div>
+            <div class="squad-list" id="squadList">
+              <span class="empty-state">Clique sur “Nouveau round” pour générer la première escouade.</span>
+            </div>
+            <div class="hint">
+              Priorité aux joueurs qui ont le moins joué, puis à ceux qui attendent depuis le plus longtemps.
+            </div>
+          </div>
+
+          <div class="bench-section">
+            <div class="section-title">
+              <span>Sur le banc</span>
+              <span class="section-sub" id="benchCountInfo">0 joueur</span>
+            </div>
+            <div class="bench-list" id="benchList">
+              <span class="empty-state-quiet">Aucun joueur en attente.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls-row">
+          <div class="controls-row-left">
+            <button class="btn btn-primary" id="newRoundBtn">Nouveau round</button>
+            <button class="btn btn-secondary" id="shuffleBtn">Randomiser les présents</button>
+          </div>
+          <button class="btn btn-danger" id="resetBtn">Réinitialiser la soirée</button>
+        </div>
+
+        <div class="hint">
+          Utilisation simple : coche seulement les joueurs vraiment connectés, puis “Nouveau round” après chaque raid.
+        </div>
+        <div class="warning-text" id="warningText"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Confetti + Popup chauves -->
+  <div id="confettiContainer"></div>
+
+  <div id="baldPopup" class="bald-popup">
+    <div class="bald-popup-inner">
+      <div class="bald-title">PROTOCOLE FOLLICULAIRE</div>
+      <div class="bald-emoji">🧑‍🦲</div>
+      <div class="bald-text">
+        Ce round met <span>Olive</span> à l’honneur.<br/>
+        Gloire aux chauves, que la lumière rebondisse sur leur crâne au cœur du raid.
+      </div>
+      <div class="bald-sub">
+        Bonus cosmique : +100 style, +0 stats. C’est déjà beaucoup.
+      </div>
+      <button class="btn btn-secondary bald-popup-close" id="baldPopupCloseBtn">OK, on repart en raid</button>
     </div>
-    <div class="qplayer" id="qplayer"></div>
-    <div id="qzone"></div>
-    <div class="feedback" id="feedback"></div>
-    <div class="tip" id="tip">
-      <b>Astuce :</b> Chacun répond à son tour. <br>
-      <span style="color:#af3245;">Certaines questions sont aussi crues que la météo en montagne !</span>
-    </div>
-    <div class="footer">Fait pour Hugues, Olivier & Pierre – Bauges 2025</div>
-  </main>
+  </div>
+
   <script>
-    const playerNames = ["Hugues", "Olivier", "Pierre"];
-    const colors = ["#46815f", "#b8830e", "#af3245"];
-    const questions = [
-      // Sérieuses (exemples, à étoffer selon besoin)
-      { q: "Quelle est l'altitude du Chalet du Charbon ?", a: 1, c:["1330m", "1660m", "1865m"] },
-      { q: "Quel sommet est le plus haut des Bauges ?", a: 0, c:["Arcalod", "Chaurionde", "Mont Charvin"] },
-      { q: "Combien de couchages au refuge du Charbon (environ) ?", a:2, c:["6", "11", "15-16"] },
-      { q: "Qu'est-ce qu'un névé ?", a: 2, c:["Un abri rustique", "Un insecte rare", "Neige persistante"] },
-      { q: "Animal qui protège les troupeaux d’alpage ?", a:1, c:["Chamois", "Patou", "Cochon sauvage"] },
-      { q: "Quel accessoire est ESSENTIEL pour filtrer l’eau de source ?", a: 0, c:["Filtre ou pastilles", "Écharpe", "Paille aromatisée"] },
-      { q: "À quoi sert la carte IGN plastifiée ?", a:0, c:["S’orienter même mouillé", "Ramasser la merde du pote", "Décorer la tente"] },
-      { q: "Quel est le principal danger météo en montagne ?", a: 2, c:["Froid polaire", "Pluie de myrtilles", "Orage soudain"] },
-      { q: "Où est-il INTERDIT de planter la tente dans la réserve des Bauges ?", a:1, c:["A moins de 50m d’un refuge", "En pleine zone sans abri", "Sur le toit d’une vache"] },
-      { q: "Quel animal peut charger un randonneur ?", a:1, c:["Bouquetin", "Vache en rut", "Grenouille fatiguée"] },
-      { q: "Quelle plante peut provoquer de graves brûlures au contact humide ?", a:2, c:["Edelweiss", "Génépi", "Berce du Caucase"] },
-      { q: "Quelle est la bonne réaction face à un patou ?", a: 2, c:["Lui lancer ton sandwich", "Courir en hurlant", "S'arrêter et parler calmement"] },
-      { q: "Qu’est-ce qu’on évite ABSOLUMENT de faire en cas d’orage ?", a:2, c:["Se coucher sous un rocher", "Redescendre", "Rester sur la crête"] },
-      { q: "Quelle boisson déshydrate le plus en montagne ?", a: 0, c:["Bière", "Eau filtrée", "Tisane"] },
-      { q: "Que faut-il emporter pour bivouaquer (hors tente) ?", a:1, c:["Fourchette à escargot", "Sac de couchage chaud", "Gant en cuir"] },
-      // Crues/vulgaires
-      { q: "Quel est le VRAI risque d’oublier le PQ en bivouac ?", a:1, c:["Tu demandes à un sanglier", "T'essuies avec ta main puis tu serres la main de tes potes", "Tu cries jusqu'à ce que Maman vienne"] },
-      { q: "Ton pote a bouffé du cassoulet lyophilisé... Que se passe-t-il la nuit ?", a:2, c:["Explosion de duvet", "Tente propulsée au col suivant", "Odeur de chacal, tout le monde sort"] },
-      { q: "Quel est le meilleur remède si ton sexe gèle dans la tente ?", a:1, c:["Crier très fort", "Le réchauffer dans la bouche d’un(e) ami(e)", "Lui écrire un poème triste"] },
-      { q: "Un patou te fonce dessus, tu fais quoi ?", a:2, c:["Tu montres ton cul", "Tu miaules", "Tu te pisses dessus et tu pleures en pensant à ta mère"] },
-      { q: "Quelle solution si t'as des morpions après 3 jours sans douche ?", a:0, c:["Brûler ton slip avec le réchaud", "Les partager avec tes amis", "Prier Saint-Bidet"] },
-      { q: "Après 25km à transpirer dans ta culotte, meilleure astuce pour l’odeur ?", a:0, c:["Mettre la culotte sur le nez de ton pote", "L'accrocher sur le bâton du berger", "S'en servir comme sac à vomi"] },
-      { q: "Pourquoi éviter de dormir à poil dans une cabane de montagne ?", a:1, c:["Pour ne pas bander sur un chamois", "Parce que la souris va grignoter tes noisettes", "Parce que tu vas glisser sur la banquette"] },
-      { q: "La première chose à faire après avoir chié derrière un sapin ?", a:2, c:["Se filmer pour TikTok", "Marquer le territoire", "Enterrer comme un humain et prier pour que personne ne marche dedans"] },
-      { q: "Ton pote se réveille, sa bouche sent la charogne. Il a sûrement :", a:2, c:["Léché un patou", "Bouffé la chaussette de droite", "Dormir la bouche ouverte sur ta chaussette sale"] },
-      { q: "Quelle attitude adopter face à un troupeau de vaches en rut ?", a:1, c:["Filer à poil au sommet", "Les applaudir en chantant du Patrick Sébastien", "Tenter de téter la première venue"] },
-      { q: "Comment reconnaître un randonneur vraiment en galère ?", a:0, c:["Il supplie pour une lingette intime", "Il tente de manger des crottes de marmotte", "Il pleure en demandant le WiFi"] },
-      { q: "Pour survivre en cas de pluie continue ?", a:2, c:["Se rouler dans la boue", "Chanter fort pour faire peur à la météo", "Pleurer dans son slip et attendre la fin"] },
-      { q: "Ton pote ronfle à réveiller les marmottes, que fais-tu ?", a:1, c:["Tu lui bouches le nez avec une chaussette sale", "Tu le roules dans la pente jusqu’à la rivière", "Tu filmes et partages sur le groupe WhatsApp pro"] },
-      { q: "La meilleure façon de sécher ses chaussettes trempées ?", a:2, c:["Les brûler et sacrifier la tente", "Les filer à un patou", "Les coller sur la tronche d’un pote pendant son sommeil"] },
-      { q: "En cas d’ampoule au pied…", a:0, c:["Percer et désinfecter", "Laisser mûrir puis gober", "Échanger contre une bière"] }
-    ];
-    // Mélange questions
-    function shuffle(array) {
-      for(let i=array.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [array[i],array[j]] = [array[j],array[i]];
+    const STORAGE_KEY = "arc-raiders-squad-rotator-v1";
+
+    let players = [];
+    let currentRound = 0;
+    let baldPopupTimeout = null;
+
+    function generateId() {
+      return Math.random().toString(36).slice(2) + Date.now().toString(36);
+    }
+
+    function saveState() {
+      try {
+        const state = { players, currentRound };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn("Impossible d’enregistrer l’état :", e);
       }
     }
-    shuffle(questions);
 
-    let scores = [0,0,0], current=0, qidx=0, totalQ=questions.length;
-    const qplayer = document.getElementById("qplayer");
-    const qzone = document.getElementById("qzone");
-    const feedback = document.getElementById("feedback");
-    const scoreEls = [
-      document.getElementById("p1"),
-      document.getElementById("p2"),
-      document.getElementById("p3")
-    ];
-    const tip = document.getElementById("tip");
-
-    function showScore(){
-      scoreEls[0].textContent = `Hugues : ${scores[0]}`;
-      scoreEls[1].textContent = `Olivier : ${scores[1]}`;
-      scoreEls[2].textContent = `Pierre : ${scores[2]}`;
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        players = Array.isArray(state.players) ? state.players : [];
+        currentRound = state.currentRound || 0;
+      } catch (e) {
+        console.warn("Impossible de charger l’état :", e);
+      }
     }
 
-    function showQ() {
-      feedback.textContent="";
-      tip.style.display = qidx===0 ? "block":"none";
-      if(qidx>=totalQ){
-        qzone.innerHTML=`<div class="qtext animate-in">Fin du quiz !<br>Score final:<br>
-        <b style="color:${colors[0]}">Hugues: ${scores[0]}</b><br>
-        <b style="color:${colors[1]}">Olivier: ${scores[1]}</b><br>
-        <b style="color:${colors[2]}">Pierre: ${scores[2]}</b></div>
-        <button class="btn nextbtn" onclick="location.reload()">Rejouer</button>`;
-        qplayer.textContent="";
+    function addPlayer(name) {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      players.push({
+        id: generateId(),
+        name: trimmed,
+        present: true,
+        status: "bench",
+        roundsPlayed: 0,
+        benchStreak: 0,
+      });
+      saveState();
+      render();
+    }
+
+    function removePlayer(id) {
+      players = players.filter(p => p.id !== id);
+      saveState();
+      render();
+    }
+
+    function setPlayerPresent(id, present) {
+      const p = players.find(p => p.id === id);
+      if (!p) return;
+      p.present = present;
+      if (!present) {
+        p.status = "absent";
+      } else {
+        if (p.status === "absent") {
+          p.status = "bench";
+        }
+      }
+      saveState();
+      render();
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function randomisePresentOrder() {
+      const presentPlayers = players.filter(p => p.present);
+      const absentPlayers = players.filter(p => !p.present);
+      shuffleArray(presentPlayers);
+      players = presentPlayers.concat(absentPlayers);
+      saveState();
+      render();
+    }
+
+    function animateRoundNumber() {
+      const el = document.getElementById("roundNumber");
+      if (!el) return;
+      el.classList.remove("round-pulse");
+      void el.offsetWidth; // reflow pour relancer l’animation
+      el.classList.add("round-pulse");
+    }
+
+    /* --- Easter egg Olive / Olivier --- */
+
+    function isOliveName(name) {
+      const n = name.trim().toLowerCase();
+      // "Olive", "Olivier", "Olive X", etc.
+      return n === "olive" || n === "olivier" || n.startsWith("olive ");
+    }
+
+    function triggerBaldPopup(squadPlayers) {
+      const popup = document.getElementById("baldPopup");
+      const textEl = popup.querySelector(".bald-text");
+      const oliveNames = squadPlayers
+        .map(p => p.name)
+        .filter(n => isOliveName(n));
+
+      if (oliveNames.length > 0) {
+        const first = oliveNames[0];
+        textEl.innerHTML =
+          `Ce round met <span>${first}</span> à l’honneur.<br/>` +
+          `Gloire aux chauves, que la lumière rebondisse sur leur crâne au cœur du raid.`;
+      }
+
+      popup.classList.add("show");
+
+      if (baldPopupTimeout) {
+        clearTimeout(baldPopupTimeout);
+      }
+      baldPopupTimeout = setTimeout(() => {
+        hideBaldPopup();
+      }, 6500);
+    }
+
+    function hideBaldPopup() {
+      const popup = document.getElementById("baldPopup");
+      popup.classList.remove("show");
+    }
+
+    function createConfettiBurst() {
+      const container = document.getElementById("confettiContainer");
+      container.innerHTML = "";
+
+      const colors = [
+        "#ffb347",
+        "#ff6b3d",
+        "#f97316",
+        "#34d1ff",
+        "#facc15",
+        "#e5e7eb"
+      ];
+
+      const total = 120;
+      for (let i = 0; i < total; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti-piece";
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.4;
+        const duration = 2.2 + Math.random() * 1.2;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const rotate = (Math.random() * 360) + "deg";
+
+        piece.style.left = left + "vw";
+        piece.style.backgroundColor = color;
+        piece.style.animationDuration = duration + "s";
+        piece.style.animationDelay = delay + "s";
+        piece.style.transform = `rotate(${rotate})`;
+
+        container.appendChild(piece);
+      }
+
+      setTimeout(() => {
+        container.innerHTML = "";
+      }, 5000);
+    }
+
+    function handleBaldEasterEgg(squadPlayers) {
+      const hasOlive = squadPlayers.some(p => isOliveName(p.name));
+      if (!hasOlive) return;
+      createConfettiBurst();
+      triggerBaldPopup(squadPlayers);
+    }
+
+    /* --- Logique de rotation --- */
+
+    function newRound() {
+      const presentPlayers = players.filter(p => p.present);
+      const warningEl = document.getElementById("warningText");
+
+      if (presentPlayers.length < 3) {
+        warningEl.textContent = "Il faut au moins 3 joueurs présents pour lancer un round.";
         return;
+      } else {
+        warningEl.textContent = "";
       }
-      qplayer.textContent = `À toi : ${playerNames[current]}`;
-      qplayer.style.color = colors[current];
-      const q = questions[qidx];
-      let html = `<div class="qtext animate-in">${q.q}</div>
-        <div class="qcm">`;
-      q.c.forEach((choix, i)=>{
-        html += `<button class="btn" data-i="${i}">${choix}</button>`;
+
+      // Tri pour équité : moins de rounds joués, puis plus longue attente
+      const sorted = [...presentPlayers].sort((a, b) => {
+        if (a.roundsPlayed !== b.roundsPlayed) {
+          return a.roundsPlayed - b.roundsPlayed;
+        }
+        if (a.benchStreak !== b.benchStreak) {
+          return b.benchStreak - a.benchStreak;
+        }
+        return a.name.localeCompare(b.name);
       });
-      html += `</div>`;
-      qzone.innerHTML = html;
-      document.querySelectorAll(".btn").forEach(btn=>{
-        btn.onclick = (e) => answerQ(e);
+
+      const squadIds = new Set(sorted.slice(0, 3).map(p => p.id));
+
+      players.forEach(p => {
+        if (!p.present) {
+          p.status = "absent";
+          return;
+        }
+        if (squadIds.has(p.id)) {
+          p.status = "playing";
+          p.roundsPlayed = (p.roundsPlayed || 0) + 1;
+          p.benchStreak = 0;
+        } else {
+          p.status = "bench";
+          p.benchStreak = (p.benchStreak || 0) + 1;
+        }
       });
+
+      currentRound += 1;
+      saveState();
+      render();
+      animateRoundNumber();
+
+      // Easter egg
+      const squadPlayers = players.filter(p => p.present && squadIds.has(p.id));
+      handleBaldEasterEgg(squadPlayers);
     }
 
-    function answerQ(e){
-      let i = Number(e.target.dataset.i);
-      let good = i === questions[qidx].a;
-      document.querySelectorAll(".btn").forEach((btn,idx)=>{
-        btn.disabled = true;
-        btn.classList.remove('selected');
-        if(idx === questions[qidx].a) btn.classList.add("good");
-        else if(idx === i) btn.classList.add("bad");
+    function resetSession() {
+      players.forEach(p => {
+        p.status = p.present ? "bench" : "absent";
+        p.roundsPlayed = 0;
+        p.benchStreak = 0;
       });
-      if(good){
-        feedback.innerHTML = `<span style="color:var(--ok);">Bravo ${playerNames[current]} ! Bonne réponse !</span>`;
-        scores[current]++;
-      }else{
-        feedback.innerHTML = `<span style="color:var(--fail);">Faux ! ${playerNames[current]}, la bonne réponse était : <b>${questions[qidx].c[questions[qidx].a]}</b></span>`;
-      }
-      showScore();
-      setTimeout(nextQ, 1500); // passage auto après 1.5s
+      currentRound = 0;
+      saveState();
+      render();
     }
 
-    function nextQ(){
-      qidx++;
-      current = (current+1)%3;
-      qzone.classList.remove("animate-in");
-      qzone.classList.add("animate-out");
-      setTimeout(()=>{
-        qzone.classList.remove("animate-out");
-        showQ();
-      },400);
+    function render() {
+      const playersList = document.getElementById("playersList");
+      const roundNumberEl = document.getElementById("roundNumber");
+      const presentCountInfo = document.getElementById("presentCountInfo");
+      const squadList = document.getElementById("squadList");
+      const benchList = document.getElementById("benchList");
+      const squadCountInfo = document.getElementById("squadCountInfo");
+      const benchCountInfo = document.getElementById("benchCountInfo");
+
+      playersList.innerHTML = "";
+
+      if (players.length === 0) {
+        playersList.innerHTML = '<div class="empty-state">Ajoute vos pseudos pour commencer.</div>';
+      } else {
+        players.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "player-card";
+
+          const main = document.createElement("div");
+          main.className = "player-main";
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "player-name";
+          nameEl.textContent = p.name;
+
+          const status = document.createElement("div");
+          status.className = "status-pill";
+          if (p.status === "playing") {
+            status.classList.add("status-playing");
+            status.textContent = "En raid";
+          } else if (p.status === "bench") {
+            status.classList.add("status-bench");
+            status.textContent = "En attente";
+          } else {
+            status.classList.add("status-absent");
+            status.textContent = "Absent";
+          }
+
+          main.appendChild(nameEl);
+          main.appendChild(status);
+
+          const actions = document.createElement("div");
+          actions.className = "player-actions";
+
+          const presentLabel = document.createElement("label");
+          presentLabel.className = "present-toggle";
+
+          const presentCheckbox = document.createElement("input");
+          presentCheckbox.type = "checkbox";
+          presentCheckbox.checked = p.present;
+          presentCheckbox.addEventListener("change", (e) => {
+            setPlayerPresent(p.id, e.target.checked);
+          });
+
+          const presentText = document.createElement("span");
+          presentText.textContent = "Présent";
+
+          presentLabel.appendChild(presentCheckbox);
+          presentLabel.appendChild(presentText);
+
+          const removeBtn = document.createElement("button");
+          removeBtn.className = "btn btn-secondary";
+          removeBtn.style.padding = "4px 8px";
+          removeBtn.style.fontSize = "0.7rem";
+          removeBtn.textContent = "×";
+          removeBtn.title = "Supprimer le joueur";
+          removeBtn.addEventListener("click", () => {
+            if (confirm(`Supprimer ${p.name} de la liste ?`)) {
+              removePlayer(p.id);
+            }
+          });
+
+          actions.appendChild(presentLabel);
+          actions.appendChild(removeBtn);
+
+          card.appendChild(main);
+          card.appendChild(actions);
+          playersList.appendChild(card);
+        });
+      }
+
+      const presentCount = players.filter(p => p.present).length;
+      presentCountInfo.textContent =
+        presentCount === 0
+          ? "Aucun joueur connecté"
+          : presentCount === 1
+          ? "1 joueur connecté"
+          : `${presentCount} joueurs connectés`;
+
+      roundNumberEl.textContent = currentRound === 0 ? "–" : currentRound.toString();
+
+      const squadPlayers = players.filter(p => p.present && p.status === "playing");
+      const benchPlayers = players.filter(p => p.present && p.status === "bench");
+
+      squadList.innerHTML = "";
+      benchList.innerHTML = "";
+
+      if (squadPlayers.length === 0) {
+        squadList.innerHTML =
+          '<span class="empty-state">Clique sur “Nouveau round” pour générer la première escouade.</span>';
+      } else {
+        squadPlayers.forEach(p => {
+          const tag = document.createElement("div");
+          tag.className = "tag-player squad";
+          tag.textContent = p.name;
+          squadList.appendChild(tag);
+        });
+      }
+
+      if (benchPlayers.length === 0) {
+        benchList.innerHTML =
+          '<span class="empty-state-quiet">Aucun joueur en attente.</span>';
+      } else {
+        benchPlayers.forEach(p => {
+          const tag = document.createElement("div");
+          tag.className = "tag-player";
+          tag.textContent = p.name;
+          benchList.appendChild(tag);
+        });
+      }
+
+      squadCountInfo.textContent = `${squadPlayers.length} / 3 joueurs`;
+      benchCountInfo.textContent =
+        benchPlayers.length === 0
+          ? "0 joueur"
+          : benchPlayers.length === 1
+          ? "1 joueur"
+          : `${benchPlayers.length} joueurs`;
     }
-    showScore();
-    showQ();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadState();
+      render();
+
+      const addForm = document.getElementById("addPlayerForm");
+      const nameInput = document.getElementById("playerNameInput");
+      const newRoundBtn = document.getElementById("newRoundBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const shuffleBtn = document.getElementById("shuffleBtn");
+      const baldPopup = document.getElementById("baldPopup");
+      const baldCloseBtn = document.getElementById("baldPopupCloseBtn");
+
+      addForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const value = nameInput.value;
+        if (value.trim()) {
+          addPlayer(value);
+          nameInput.value = "";
+          nameInput.focus();
+        }
+      });
+
+      newRoundBtn.addEventListener("click", () => {
+        newRound();
+      });
+
+      resetBtn.addEventListener("click", () => {
+        if (confirm("Réinitialiser la soirée ? (rotation remise à zéro)")) {
+          resetSession();
+        }
+      });
+
+      shuffleBtn.addEventListener("click", () => {
+        randomisePresentOrder();
+      });
+
+      baldCloseBtn.addEventListener("click", () => {
+        hideBaldPopup();
+      });
+
+      baldPopup.addEventListener("click", (e) => {
+        if (e.target === baldPopup) {
+          hideBaldPopup();
+        }
+      });
+    });
   </script>
 </body>
-</html>
+  </html>
