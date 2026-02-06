@@ -89,9 +89,35 @@ function showView(name) {
   }
 }
 
+function resolveRouteName() {
+  const hash = window.location.hash;
+  if (hash.startsWith("#/")) {
+    return { name: hash.replace("#/", ""), source: "hash" };
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const searchRoute = searchParams.get("route") || searchParams.get("view");
+  if (searchRoute) {
+    return { name: searchRoute, source: "search" };
+  }
+
+  const pathName = window.location.pathname.replace(/\/+$/, "");
+  const pathSegments = pathName.split("/").filter(Boolean);
+  const pathRoute = pathSegments[pathSegments.length - 1];
+  if (pathRoute && pathRoute !== "index.html") {
+    return { name: pathRoute, source: "pathname" };
+  }
+
+  return { name: "home", source: "default" };
+}
+
 function route() {
-  const hash = window.location.hash || "#/home";
-  const routeName = hash.replace("#/", "");
+  const { name: routeName, source } = resolveRouteName();
+  const supportedRoutes = new Set(["home", "builder", "dojo", "library", "journal", "help", "settings"]);
+  if (source !== "hash" && !supportedRoutes.has(routeName)) {
+    window.location.hash = "#/home";
+    return;
+  }
   if (!localStorage.getItem(CONSENT_KEY)) {
     showView("onboarding");
     return;
@@ -818,6 +844,7 @@ function initEventListeners() {
   });
 
   window.addEventListener("hashchange", route);
+  window.addEventListener("popstate", route);
 }
 
 async function init() {
