@@ -15,20 +15,7 @@ export default function App() {
   const { width } = useWindowDimensions();
   const isWide = width >= 840;
 
-  const highlights = [
-    {
-      label: "Rituels guidés",
-      value: "Séances pas à pas, rythmes et pauses conscientes."
-    },
-    {
-      label: "Sécurité & limites",
-      value: "Rappels clairs, consentements, journal sensible."
-    },
-    {
-      label: "Progression",
-      value: "Programmes personnalisés, suivi et feedback."
-    }
-  ];
+  const highlights = copy.trust;
 
   const modules = [
     {
@@ -76,13 +63,24 @@ export default function App() {
         <View style={[styles.hero, isWide && styles.heroWide]}>
           <View style={styles.heroHeader}>
             <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeText}>Disponible partout</Text>
+              <Text style={styles.heroBadgeText}>Pratique guidée & éthique</Text>
             </View>
             <Text style={styles.title}>{copy.appName}</Text>
+            <Text style={styles.tagline}>{copy.tagline}</Text>
             <Text style={styles.subtitle}>
               Compagnon sobre, éthique et encadré pour la pratique de
               l’Aikishintaiso. Interface optimisée pour mobile et bureau.
             </Text>
+            <View style={styles.heroActions}>
+              <View style={styles.primaryButton}>
+                <Text style={styles.primaryButtonText}>{copy.ctaPrimary}</Text>
+              </View>
+              <View style={styles.secondaryButton}>
+                <Text style={styles.secondaryButtonText}>
+                  {copy.ctaSecondary}
+                </Text>
+              </View>
+            </View>
             <View style={styles.metaRow}>
               <View style={styles.metaChip}>
                 <Text style={styles.metaChipText}>Mode sombre</Text>
@@ -96,7 +94,7 @@ export default function App() {
             </View>
           </View>
           <View style={styles.heroPanel}>
-            <Text style={styles.panelTitle}>Expérience guidée</Text>
+            <Text style={styles.panelTitle}>{copy.experienceTitle}</Text>
             {highlights.map((item) => (
               <View key={item.label} style={styles.panelItem}>
                 <Text style={styles.panelItemLabel}>{item.label}</Text>
@@ -106,17 +104,37 @@ export default function App() {
           </View>
         </View>
 
+        <View style={[styles.quickStart, isWide && styles.quickStartWide]}>
+          <SectionCard
+            title={copy.quickStart.title}
+            description={copy.quickStart.steps.join("\n")}
+            badge="Essentiel"
+            tone="elevated"
+          />
+          <SectionCard
+            title={copy.reassurance.title}
+            description={copy.reassurance.body}
+            badge="Local"
+            tone="muted"
+          />
+          <SectionCard
+            title={copy.companion.title}
+            description={copy.companion.body}
+            badge="Calme"
+            tone="muted"
+          />
+        </View>
+
         <SectionCard
           title={copy.disclaimerTitle}
           description={copy.disclaimerBody}
           badge="Important"
+          tone="elevated"
         />
 
         <View style={[styles.sectionHeader, isWide && styles.sectionHeaderWide]}>
-          <Text style={styles.sectionTitle}>Modules clés</Text>
-          <Text style={styles.sectionSubtitle}>
-            Une navigation claire, des actions guidées et des parcours adaptés.
-          </Text>
+          <Text style={styles.sectionTitle}>{copy.modulesTitle}</Text>
+          <Text style={styles.sectionSubtitle}>{copy.modulesSubtitle}</Text>
         </View>
         <View style={[styles.grid, isWide && styles.gridWide]}>
           {modules.map((module) => (
@@ -183,10 +201,50 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 10
   },
+  tagline: {
+    color: "#E8E8FF",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 10
+  },
   subtitle: {
     color: "#D1D1D6",
     fontSize: 15,
     lineHeight: 22
+  },
+  heroActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 16
+  },
+  primaryButton: {
+    backgroundColor: "#5E5EE8",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)"
+  },
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.2
+  },
+  secondaryButton: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)"
+  },
+  secondaryButtonText: {
+    color: "#F2F2F7",
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.2
   },
   metaRow: {
     flexDirection: "row",
@@ -234,6 +292,14 @@ const styles = StyleSheet.create({
     color: "#C7C7CC",
     fontSize: 13,
     lineHeight: 18
+  },
+  quickStart: {
+    gap: 12,
+    marginBottom: 8
+  },
+  quickStartWide: {
+    flexDirection: "row",
+    flexWrap: "wrap"
   },
   sectionHeader: {
     marginTop: 8,

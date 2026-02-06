@@ -6,16 +6,18 @@ type SectionCardProps = {
   description: string;
   badge?: string;
   footer?: ReactNode;
+  tone?: "default" | "muted" | "elevated";
 };
 
 export function SectionCard({
   title,
   description,
   badge,
-  footer
+  footer,
+  tone = "default"
 }: SectionCardProps) {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, stylesByTone[tone]]}>
       {badge ? (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{badge}</Text>
@@ -36,6 +38,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
     marginBottom: 12
+  },
+  cardMuted: {
+    backgroundColor: "#141416",
+    borderColor: "rgba(255,255,255,0.06)"
+  },
+  cardElevated: {
+    backgroundColor: "#202024",
+    borderColor: "rgba(130,130,255,0.24)"
   },
   badge: {
     alignSelf: "flex-start",
@@ -68,3 +78,9 @@ const styles = StyleSheet.create({
     marginTop: 12
   }
 });
+
+const stylesByTone = {
+  default: styles.card,
+  muted: styles.cardMuted,
+  elevated: styles.cardElevated
+} as const;
