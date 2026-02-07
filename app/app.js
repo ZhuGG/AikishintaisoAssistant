@@ -1,5 +1,6 @@
 const STORAGE_KEY = "aiki_app_state_v1";
 const CONSENT_KEY = "aiki_consent_v1";
+const PENDING_ROUTE_KEY = "aiki_pending_route_v1";
 
 const defaultSettings = {
   theme: "system",
@@ -114,14 +115,19 @@ function resolveRouteName() {
 function route() {
   const { name: routeName, source } = resolveRouteName();
   const supportedRoutes = new Set(["home", "builder", "dojo", "library", "journal", "help", "settings"]);
+  const allowedWithoutConsent = new Set(["help", "settings"]);
   if (source !== "hash" && !supportedRoutes.has(routeName)) {
     window.location.hash = "#/home";
     return;
   }
   if (!localStorage.getItem(CONSENT_KEY)) {
+    if (!allowedWithoutConsent.has(routeName) && supportedRoutes.has(routeName)) {
+      localStorage.setItem(PENDING_ROUTE_KEY, routeName);
+    }
     showView("onboarding");
     return;
   }
+  localStorage.removeItem(PENDING_ROUTE_KEY);
   switch (routeName) {
     case "builder":
       showView("builder");
@@ -761,6 +767,7 @@ function importData(file) {
 function resetData() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(CONSENT_KEY);
+  localStorage.removeItem(PENDING_ROUTE_KEY);
   window.location.reload();
 }
 
@@ -775,7 +782,9 @@ function initEventListeners() {
     localStorage.setItem(CONSENT_KEY, "true");
     saveState();
     applyTheme();
-    window.location.hash = "#/home";
+    const pendingRoute = localStorage.getItem(PENDING_ROUTE_KEY);
+    localStorage.removeItem(PENDING_ROUTE_KEY);
+    window.location.hash = pendingRoute ? `#/${pendingRoute}` : "#/home";
   });
 
   document.getElementById("start-session-btn").addEventListener("click", () => {
