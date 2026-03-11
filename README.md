@@ -1,14 +1,8 @@
 # Nação Capoeira — Oullins / Pierre-Bénite
 
-Site vitrine premium pour la section capoeira rattachée au **PLO (Patronage Laïque d'Oullins)**.
+Maquette statique premium pour présentation commanditaire (section rattachée au PLO).
 
-## Note technique
-
-Le brief demandait idéalement Next.js + TypeScript + Tailwind. Dans cet environnement, l'installation npm est bloquée (registry inaccessible), donc la livraison est faite en **site statique HTML/CSS/JS maintenable** pour garantir un résultat complet, exploitable immédiatement.
-
-## Installation / lancement
-
-Aucune dépendance requise.
+## Lancer le site
 
 ```bash
 python3 -m http.server 4173
@@ -18,38 +12,33 @@ Puis ouvrir : `http://localhost:4173`.
 
 ## Structure
 
-- `index.html` : accueil
-- `cours-tarifs.html` : horaires, tarifs, FAQ
-- `ecole.html` : histoire, pédagogie, encadrement
-- `galerie.html` : temps forts (placeholders)
-- `contact.html` : coordonnées + formulaire prêt à brancher
-- `mentions-legales.html`, `politique-confidentialite.html`
-- `site.config.json` : **toutes les données éditables** (coordonnées, horaires, tarifs, personnes, FAQ)
-- `public/assets/styles.css` : direction artistique globale
-- `public/assets/app.js` : shell commun (navigation, footer, JSON-LD, CTA mobiles)
+- `index.html` : accueil prioritaire
+- `cours-tarifs.html`, `ecole.html`, `galerie.html`, `contact.html`
+- `site.config.json` : source éditable (coordonnées, horaires, textes)
+- `public/assets/styles.css` : direction artistique + animations
+- `public/assets/app.js` : shell global (nav, footer, mobile, SEO)
 
-## Modifier les contenus
+## Assets (sans fichiers binaires dans la PR)
 
-Éditer `site.config.json`:
-- informations générales (`address`, `phone`, `email`)
-- horaires (`schedules`)
-- tarifs (`prices`, `fees`)
-- contacts individuels (`people.showSectionLead` pour masquer rapidement)
-- frise historique (`history`)
+Arborescence conservée :
 
-## Formulaire
+- `public/assets/brand/`
+- `public/assets/images/`
+- `public/assets/textures/`
 
-Le formulaire de `contact.html` est prêt côté UX, avec validation HTML native et état de confirmation.
-Brancher l'envoi réel via :
-- Formspree
-- endpoint serveur
-- service SMTP/API
+Le rendu actuel repose sur des placeholders CSS (gradients + patterns), pour rester propre même sans médias réels.
 
-## SEO / accessibilité intégrés
+## Fichiers réels à remplacer en production
 
-- métadonnées page par page
-- Open Graph
-- JSON-LD (SportsActivityLocation)
-- `robots.txt` et `sitemap.xml`
-- contraste lisible, structure sémantique, responsive mobile
-- respect de `prefers-reduced-motion`
+Conserver exactement ces noms lors du remplacement :
+
+1. `public/assets/brand/logo-main.png`
+2. `public/assets/images/hero-roda.jpg`
+3. `public/assets/images/gallery-01.jpg`
+4. `public/assets/textures/texture-grain.png`
+5. `public/assets/images/og-image.jpg`
+
+## Notes
+
+- Pas de dépendance principale à des images hotlinkées.
+- Compatibilité `file://` conservée via fallback de config embarquée dans `app.js`.

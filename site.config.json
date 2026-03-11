@@ -115,5 +115,17 @@
       "q": "Que faut-il prévoir pour le premier cours ?",
       "a": "Une tenue de sport souple, de l'eau, et l'envie d'apprendre dans un cadre collectif bienveillant."
     }
-  ]
+  ],
+  "tagline": "Capoeira martiale, musicale et culturelle à Oullins / Pierre-Bénite.",
+  "heroTitle": "Nação Capoeira<br>Oullins / Pierre-Bénite",
+  "heroSubtitle": "Une école de capoeira vivante, rigoureuse et chaleureuse, rattachée au PLO. Cours structurés dès 6 ans, ados et adultes.",
+  "heroAsset": "",
+  "brand": {
+    "logoMain": "public/assets/brand/logo-main.png"
+  },
+  "cta": {
+    "primary": "Réserver un essai",
+    "secondary": "Voir les horaires"
+  },
+  "socialLinks": []
 }
